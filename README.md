@@ -20,6 +20,12 @@ dsh plugin --profile web add github:mkpoli/dsh-continue-all
 
 Then add `"dsh-continue-all"` to `dsh.profile.bundles` in `~/.dsh/profiles/web/package.json` and restart `dsh web`.
 
+A prebuilt tarball is attached to the release:
+
+```sh
+dsh plugin --profile web add https://github.com/mkpoli/dsh-continue-all/releases/latest/download/dsh-continue-all.tgz
+```
+
 For a local checkout, `link:/path/to/dsh-continue-all` works the same way.
 
 ## Use
