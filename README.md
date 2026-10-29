@@ -32,6 +32,8 @@ For a local checkout, `link:/path/to/dsh-continue-all` works the same way.
 
 The sidebar footer shows **Continue all**. Clicking it scans stored sessions, then lists the ones that stopped mid-turn. Confirming sends the literal prompt `continue` to each session in turn, through the same session retention and `prompt(..., "queue")` path the composer uses. The dialog shows per-session progress and failures.
 
+Only sessions interrupted in the last 6 hours are selected by default. Older interrupted sessions are listed behind an opt-in checkbox, so a batch cannot reach sessions from earlier crashes or abandoned work by accident.
+
 Sessions are left out when they are:
 
 - running (their turn is live work, not an interrupted one);
@@ -42,9 +44,11 @@ Archived sessions stay archived. Unarchive one first if it should be continued.
 
 ## How detection works
 
-The host half exposes `POST /api/continue-all/scan` on DSH's authenticated `/api` channel. It lists visible stored sessions and reads each stored log. A session qualifies when its tail ends inside an open turn, or when its last `turn/end` reason is `interrupted`.
+The host half exposes `POST /api/continue-all/scan` on DSH's authenticated `/api` channel. It lists visible stored sessions and reads each stored log. A session qualifies when its tail ends inside an open turn, or when its last `turn/end` reason is `interrupted`. The response carries the time that turn stopped; the client uses it to separate the recent window from older sessions.
 
-The scan caches its answer per persistence revision, so later scans read only logs that changed since the previous one. The first scan after a restart reads every stored log and can take a while on a large history; the result is kept for the lifetime of the process.
+The scan caches its answer per persistence revision, so later scans read only logs that changed since the previous one. The first scan after a restart reads every stored log and can take a while on a large history; the result is kept for the lifetime of the process. A warm scan starts shortly after the host loads, so the first click usually finds it finished.
+
+The client requires scan response version 2. After an update, restart `dsh web` once so the host and client halves match; until then the dialog reports that the host half is out of date instead of starting anything.
 
 Sessions whose logs cannot be read are skipped and logged on the host.
 
@@ -54,7 +58,7 @@ Sessions whose logs cannot be read are skipped and logged on the host.
 npm test
 ```
 
-The host scan is split into a pure `tailContinues` predicate and a persistence reader, so the turn-boundary rules are tested without a live DSH.
+The host scan is split into a pure `tailDecision` predicate and a persistence reader, so the turn-boundary rules and stop times are tested without a live DSH.
 
 ## License
 
